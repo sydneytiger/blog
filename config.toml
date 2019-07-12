@@ -1,0 +1,4 @@
+baseURL = "https://blog.tigerchen.dev"
+languageCode = "en-us"
+title = "For future reference"
+theme = "m10c"
