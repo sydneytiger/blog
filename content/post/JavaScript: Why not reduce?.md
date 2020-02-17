@@ -58,7 +58,15 @@ function reverse(arr) {
 
 reverse([1, 2, 3, 4, 5]); // [5, 4, 3, 2, 1]
 ```
+##### reverseString
+```javascript
+function reverseString(str) {
+  return str.split('').reduceRight((acc, cur) => acc + cur);
+}
 
+const str = "reduce is fun";
+reverseString(str); // 'nuf si ecuder'
+```
 #### `map` and `filter` alternative
 ```javascript
 const arr = [0, 1, 2, 3];
@@ -137,3 +145,102 @@ function count(arr) {
 const arr = [0, 1, 1, 2, 2, 2];
 count(arr); // { 0: 1, 1: 2, 2: 3 }
 ```
+#### index of
+```javascript
+function indexOf(arr, val) {
+  return arr.reduce((acc, cur, idx) => (val === cur && acc.push(idx), acc) , []);
+}
+
+const arr = [2, 1, 5, 4, 2, 1, 6, 6, 7];
+indexOf(arr, 2); // [0, 4]
+```
+#### Parse url parameter
+```javascript
+function parseUrlParameter() {
+  return location.search.replace(/(^\?)|(&$)/g, '').split('&').reduce((acc, cur) => {
+    const [key, val] = cur.split('=');
+    acc[key] = decodeURIComponent(val);
+    return acc;
+  }, {});
+}
+
+// url is: https://www.mydomain.com?age=25&name=TYJ
+parseUrlParameter(); // { age: "25", name: "TYJ" }
+```
+#### Stringify url parameter
+```javascript
+function stringifyUrlParameter(para={}) {
+  return Object.entries(para).reduce(
+    (acc, cur) => `${acc}${cur[0]}=${encodeURIComponent(cur[1])}&`, 
+    Object.keys(para).length ? '?' : ''
+  ).replace(/&$/, '');
+}
+
+stringifyUrlParameter({ age: 27, name: "YZW" }); // "?age=27&name=YZW"
+```
+#### compose
+```javascript
+function compose(...funcs) {
+  if (funcs.length === 0) return arg => arg;
+
+  if (funcs.length === 1) return funcs[0];
+
+  return funcs.reduce((acc, cur) => (...arg) => acc(cur(...arg)));
+}
+
+//TODO:
+```
+
+### Performance and compatibility
+Looks like `reduce`, in compare with (`for`, `forEach`, `map`), it has nothing more than an accumulator `acc`.
+We could have use an external variable as an accumulator. What can you convince me to use `reduce`? The answer is **performance**.
+Let's have a test. Code below iterates and accumulate 100,000 times for `for`, `forEach`, `map` and `reduce` respectively.
+```javascript
+// 创建一个长度为100000的数组
+const list = [...new Array(100000).keys()];
+
+// for
+console.time("for");
+let result1 = 0;
+for (let i = 0; i < list.length; i++) {
+    result1 += i + 1;
+}
+console.log(result1);
+console.timeEnd("for");
+
+// forEach
+console.time("forEach");
+let result2 = 0;
+list.forEach(cur => (result2 += cur + 1));
+console.log(result2);
+console.timeEnd("forEach");
+
+// map
+console.time("map");
+let result3 = 0;
+list.map(cur => (result3 += cur + 1, cur));
+console.log(result3);
+console.timeEnd("map");
+
+// reduce
+console.time("reduce");
+const result4 = list.reduce((acc, cur) => acc + cur + 1, 0);
+console.log(result4);
+console.timeEnd("reduce");
+```
+The running environment is `MacBook Pro 2019 8G memory` and `Google Chrome v79`. The result is:
+
+operation | time spend (ms)
+--------- | ---------
+**for** | 7.859130859375
+**forEach** | 3.26806640625
+**map** | 3.689208984375
+**reduce** | 2.860107421875
+
+`reduce` always win and **12%** faster than the second one `forEach`.
+
+Well, `reduce` is very good in performance that we have proved. How about the compatibility? Here is the result from `Caniuse`
+![reduce compatibility](https://user-images.githubusercontent.com/1787825/74641701-d4decd80-51c5-11ea-9300-de2c49099b86.png)
+![reduceRight compatibility](https://user-images.githubusercontent.com/1787825/74641713-dad4ae80-51c5-11ea-8b16-37e3cef03531.png)
+
+**93.7%** the compatibility is certainly not a question. We can use it in any project.
